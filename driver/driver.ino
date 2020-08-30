@@ -28,12 +28,6 @@ struct RotaryEncoderAxis
   char        relativeEncoderValue;
 };
 
-const int encoderPinsPlayer1[] = { 2, 3 };
-const int encoderPinsPlayer2[] = { 0, 1 };
-
-RotaryEncoderAxis encoderAxisPlayer1( encoderPinsPlayer1 );
-RotaryEncoderAxis encoderAxisPlayer2( encoderPinsPlayer2 );
-
 struct RotaryEncoderMouse
 {
   RotaryEncoderMouse( RotaryEncoderAxis* pEncoderAxisX, RotaryEncoderAxis* pEncoderAxisY )
@@ -46,6 +40,13 @@ struct RotaryEncoderMouse
 
   void updateMouseAxisValues()
   {
+    if( pRotaryEncoderAxis[ MouseAxis_X ]->relativeEncoderValue == 0 &&
+        pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue == 0 )
+    {
+      //FK: Nothing to do here
+      return;
+    }
+    
     const char mouseWheel = 0;
     Mouse.move( pRotaryEncoderAxis[ MouseAxis_X ]->relativeEncoderValue, pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue, mouseWheel );
     
@@ -56,11 +57,17 @@ struct RotaryEncoderMouse
   RotaryEncoderAxis*  pRotaryEncoderAxis[ MouseAxis_Count ];
 };
 
+const int encoderPinsPlayer1[] = { 2, 3 };
+const int encoderPinsPlayer2[] = { 0, 1 };
+
+RotaryEncoderAxis encoderAxisPlayer1( encoderPinsPlayer1 );
+RotaryEncoderAxis encoderAxisPlayer2( encoderPinsPlayer2 );
+
 RotaryEncoderMouse rotaryEncoderMouse( &encoderAxisPlayer1, &encoderAxisPlayer2 );
 
 char clampIntToChar(int value)
 {
-  return value < -127 ? -127 : value > 128 ? 128 : value;
+  return ( value < -127 ? -127 : value > 128 ? 128 : value );
 }
 
 void setup() {
@@ -75,7 +82,7 @@ void loop() {
   for( uint8_t encoderIndex = 0u; encoderIndex < MouseAxis_Count; ++encoderIndex )
   {
     RotaryEncoderAxis* pRotaryEncoderAxis = rotaryEncoderMouse.pRotaryEncoderAxis[ encoderIndex ];
-    const int newEncoderValue = (int)(axisScale * (float)pRotaryEncoderAxis->encoder.read());
+    const int newEncoderValue = ( int )( axisScale * (float)pRotaryEncoderAxis->encoder.read() );
     const int encoderValueDelta = ( newEncoderValue - pRotaryEncoderAxis->absoluteEncoderValue );
 
     #if USE_SERIAL_DEBUG_OUTPUT
