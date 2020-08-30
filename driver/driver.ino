@@ -24,7 +24,7 @@ struct RotaryEncoderAxis
   }
 
   Encoder     encoder;
-  char        absoluteEncoderValue;
+  int         absoluteEncoderValue;
   char        relativeEncoderValue;
 };
 
@@ -99,7 +99,7 @@ void loop() {
     #endif
 
     pRotaryEncoderAxis->relativeEncoderValue = clampIntToChar( encoderValueDelta );
-    pRotaryEncoderAxis->absoluteEncoderValue = clampIntToChar( newEncoderValue );
+    pRotaryEncoderAxis->absoluteEncoderValue = newEncoderValue;
   }
 
   rotaryEncoderMouse.updateMouseAxisValues(); 
