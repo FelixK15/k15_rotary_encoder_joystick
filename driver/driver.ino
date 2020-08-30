@@ -46,7 +46,8 @@ struct RotaryEncoderMouse
 
   void updateMouseAxisValues()
   {
-    Mouse.move( pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue, pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue );
+    const char mouseWheel = 0;
+    Mouse.move( pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue, pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue, mouseWheel );
     
     pRotaryEncoderAxis[ MouseAxis_X ]->relativeEncoderValue = 0u;
     pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue = 0u;
