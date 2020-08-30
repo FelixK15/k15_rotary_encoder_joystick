@@ -2,37 +2,16 @@
 //    uncomment if it doesn't compile
 #define ENCODER_OPTIMIZE_INTERRUPTS
 #include <Encoder.h>
-
-#include <Joystick.h>
+#include <Mouse.h>
 
 #define USE_SERIAL_DEBUG_OUTPUT 0
 
-enum JoystickAxis : uint8_t
+enum MouseAxis : uint8_t
 {
-  JoystickAxis_X = 0u,
-  JoystickAxis_Y,
+  MouseAxis_X = 0u,
+  MouseAxis_Y,
 
-  JoystickAxis_Count
-};
-
-struct JoystickSetup
-{
-      static const int buttonCount      = 0u;
-      static const int hatSwitchCount   = 0u;
-      static const int useXAxis         = 1u;
-      static const int useYAxis         = 1u;
-      static const int useZAxis         = 0u;
-      static const int useRXAxis        = 0u;
-      static const int useRYAxis        = 0u;
-      static const int useRZAxis        = 0u;
-      static const int useRudder        = 0u;
-      static const int useThrottle      = 0u;
-      static const int useAccelerator   = 0u;
-      static const int useBreak         = 0u;
-      static const int useSteering      = 0u;
-
-      static const int axisRangeMin         = -64;
-      static const int axisRangeMax         = 64;
+  MouseAxis_Count
 };
 
 struct RotaryEncoderAxis
@@ -55,41 +34,28 @@ const int encoderPinsPlayer2[] = { 0, 1 };
 RotaryEncoderAxis encoderAxisPlayer1( encoderPinsPlayer1 );
 RotaryEncoderAxis encoderAxisPlayer2( encoderPinsPlayer2 );
 
-struct RotaryEncoderJoystick
+struct RotaryEncoderMouse
 {
-  RotaryEncoderJoystick( RotaryEncoderAxis* pEncoderAxisX, RotaryEncoderAxis* pEncoderAxisY ) :
-    joystickDevice( JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_JOYSTICK,
-        JoystickSetup::buttonCount, JoystickSetup::hatSwitchCount,
-        JoystickSetup::useXAxis, JoystickSetup::useYAxis, JoystickSetup::useZAxis,
-        JoystickSetup::useRXAxis, JoystickSetup::useRYAxis, JoystickSetup::useRZAxis,
-        JoystickSetup::useRudder, JoystickSetup::useThrottle, JoystickSetup::useAccelerator,
-        JoystickSetup::useBreak, JoystickSetup::useSteering )
+  RotaryEncoderMouse( RotaryEncoderAxis* pEncoderAxisX, RotaryEncoderAxis* pEncoderAxisY )
   {
-    pRotaryEncoderAxis[ JoystickAxis_X ] = pEncoderAxisX;
-    pRotaryEncoderAxis[ JoystickAxis_Y ] = pEncoderAxisY;
+    pRotaryEncoderAxis[ MouseAxis_X ] = pEncoderAxisX;
+    pRotaryEncoderAxis[ MouseAxis_Y ] = pEncoderAxisY;
 
-    joystickDevice.setXAxisRange( JoystickSetup::axisRangeMin, JoystickSetup::axisRangeMax );
-    joystickDevice.setYAxisRange( JoystickSetup::axisRangeMin, JoystickSetup::axisRangeMax );
-
-    const bool autoSendState = false;
-    joystickDevice.begin( autoSendState );
+    Mouse.begin();
   }
 
-  void sendJoystickValues()
+  void updateMouseAxisValues()
   {
-    joystickDevice.setXAxis( pRotaryEncoderAxis[ JoystickAxis_X ]->relativeEncoderValue );
-    joystickDevice.setYAxis( pRotaryEncoderAxis[ JoystickAxis_Y ]->relativeEncoderValue );
-    joystickDevice.sendState();
+    Mouse.move( pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue, pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue );
     
-    pRotaryEncoderAxis[ JoystickAxis_X ]->relativeEncoderValue = 0u;
-    pRotaryEncoderAxis[ JoystickAxis_Y ]->relativeEncoderValue = 0u;
+    pRotaryEncoderAxis[ MouseAxis_X ]->relativeEncoderValue = 0u;
+    pRotaryEncoderAxis[ MouseAxis_Y ]->relativeEncoderValue = 0u;
   }
 
-  RotaryEncoderAxis*  pRotaryEncoderAxis[ JoystickAxis_Count ];
-  Joystick_           joystickDevice;
+  RotaryEncoderAxis*  pRotaryEncoderAxis[ MouseAxis_Count ];
 };
 
-RotaryEncoderJoystick rotaryEncoderJoystick( &encoderAxisPlayer1, &encoderAxisPlayer2 );
+RotaryEncoderMouse rotaryEncoderMouse( &encoderAxisPlayer1, &encoderAxisPlayer2 );
 
 void setup() {
   #if USE_SERIAL_DEBUG_OUTPUT
@@ -98,9 +64,9 @@ void setup() {
 }
 
 void loop() {
-  for( uint8_t encoderIndex = 0u; encoderIndex < JoystickAxis_Count; ++encoderIndex )
+  for( uint8_t encoderIndex = 0u; encoderIndex < MouseAxis_Count; ++encoderIndex )
   {
-    RotaryEncoderAxis* pRotaryEncoderAxis = rotaryEncoderJoystick.pRotaryEncoderAxis[ encoderIndex ];
+    RotaryEncoderAxis* pRotaryEncoderAxis = rotaryEncoderMouse.pRotaryEncoderAxis[ encoderIndex ];
     const int newEncoderValue = pRotaryEncoderAxis->encoder.read();
     const int encoderValueDelta = ( newEncoderValue - pRotaryEncoderAxis->absoluteEncoderValue );
 
@@ -128,5 +94,5 @@ void loop() {
     pRotaryEncoderAxis->absoluteEncoderValue = newEncoderValue;
   }
 
-  rotaryEncoderJoystick.sendJoystickValues(); 
+  rotaryEncoderMouse.updateMouseAxisValues(); 
 }
